@@ -1,5 +1,6 @@
 #coding=utf-8
 import random
+import re
 from util import CidTransfer, rand_stay
 from db.SQLModel import Record2DB
 from logs.log import Logger
@@ -93,94 +94,107 @@ class InnerTraffic(object):
             Log.error("<search_by_price>: 价格节点输入失败")
             return False
 
-    # def match_asin(self):
-        # con = self.d.page_source
-        # pattern = '(https://(.){1,100}/dp/' + self.conf.asin + '/.+?)">'
-        # try:
-            # url = re.search(pattern, con).group(1)
-            # print "matched url!!!!", url
-        # if self.product_xpath() is not None:
-        #     return True
-            # return self.product_xpath(url)
-        # else:
-        #     return False
-        # except:
-        #     return False
-
     def match_by_xpath(self):
         """默认剔除推广链接，返回自然排名的产品xpath"""
         ignore_sponsored = self.conf.ignore_sponsored
-        # url0 = url.split("?")[0].split('=')[0]
-        # node = '//li[contains(@id, "result_") and ./div/div[last()]/div//a[contains(@href, "{0}")]]'.format(url0)
         node = '//li[contains(@id, "result_") and @data-asin="{0} and .//div.h5"]'.format(self.conf.asin.upper())
         ignore_node = '//li[contains(@id, "result_") and @data-asin="{0}" and not(.//div/h5)]'.format(self.conf.asin.upper())
-        # ignore_node = '//li[contains(@id, "result_") and .//*[contains(@href, "{0}")] and not(.//div/h5)]'.format(url0)
         if ignore_sponsored:
             return ignore_node if self.d.is_element_exist(ignore_node) else None
         else:
             return node if self.d.is_element_exist(node) else None
 
-    def detail_page(self, goods_node):
+    def see_images(self):
         try:
-            rand_stay()
-            self.d.move_to_node(goods_node)
-            goods_xp = goods_node + '/div/div/div//img[1]'
-            # print 'goods_xp', goods_xp 假设产品总会有图片连接到产品页
-            self.d.click_opt(goods_xp)
-            Log.info('<detail page>: 进入到产品页：%s' % self.conf.asin)
+            imgs_xp = '//div[@id="altImages"]/ul/li[contains(@class, "item")]'
+            elems = self.d.is_elements_exist(imgs_xp)
+            if elems:
+                for i in elems:
+                    self.d.jump_to_hold(i)
+                    rand_stay()
+        except Exception, e:
+            print '<see images>: 失败-->', e
+
+    def sponsor_next(self):
+        try:
+            next_xp = '//div[@id="sp_detail"]//div[contains(@class,"a-carousel-right")]/a'
+            if self.d.is_element_exist(next_xp):
+                self.d.move_to_click(next_xp)
+        except Exception, e:
+            print '<sponsor_next>:', e
+
+# ---------------------------------
+    def scan_detail_page(self, goods_node, find=False):
+        try:
+            self.d.click_opt(goods_node + '/div/div/div//img[1]')
+            self.d.rand_move()
+            self.see_images()
+            r = random.choice(range(3))
+            if r == 0:
+                self.sponsor_next()
+            if find:
+                Log.info('<scan_detail page>: 找到产品，进入到详情页[%s]' % self.conf.asin)
+            else:
+                Log.info('<scan_detail page>: 进入随机产品详情页[%s]' % goods_node)
+                self.d.page_back()
             return True
         except:
-            Log.exc("<detail_page>: 进入产品详细页失败")
+            Log.exc("<scan_detail_page>: 进入随机产品详情页失败")
             return False
 
-    def random_scan(self, i):
-        """选取第4-10个产品中随机一个"""
-        ran = random.choice(range(3, 11))
-        goods_node = '//li[contains(@id, "result_{0}")]'.format(ran)
-        if self.detail_page(goods_node):
-            Log.info('随机进入第%s页产品(%s)' % (i, goods_node))
-            return goods_node + '/div/div/div//img[1]'
-        Log.info('随机进入第%s页产品(%s)失败' % (i, ran))
+    def random_scan_products(self, nums=3):
+        """select 3(nums) products randomly"""
+        length = self.d.get_elem_counts('//ul[@id="s-results-list-atf"]/li[contains(@id,"result_")]')
+        if length < nums:
+            nums = length
+        randList = random.sample(range(length), nums)
+        randList.sort()
+        for i in range(len(randList)):
+            goods_node = '//li[contains(@id, "result_%s")]' % randList[i]
+            if i == 0:
+                self.d.move_to_node(goods_node)
+            else:
+                last_node = '//li[contains(@id, "result_%s")]' % randList[i-1]
+                self.d.move_from_to_click(fxp=last_node, txp=goods_node)
+            self.scan_detail_page(goods_node)
+        return '//li[contains(@id, "result_%s")]' % randList[-1]
 
     def search_in_pages(self):
         """Search product in specified pages. Return product url"""
         for i in range(self.conf.search_page):
-            print 'search in pages:i', i
-            goods_xp = self.match_by_xpath()
-            if goods_xp:
+            goods_node = self.match_by_xpath()
+            if goods_node:
                 Log.info('找到产品：%s' % self.conf.asin)
                 self.flag = 1
-                return goods_xp
-            else:
-                rand_goods = self.random_scan(i)
-                if rand_goods is not None:
-                    self.d.rand_move()
-                    rand_stay()
-                    self.d.page_back()
-                    rand_stay()
-                    self.d.move_from_to_click(fxp=rand_goods, txp='//a[@id="pagnNextLink"]')
+                if i == 0:
+                    cur_node = self.random_scan_products()
+                    self.d.move_from_to(fxp=cur_node, txp=goods_node)
                 else:
-                    self.d.move_to_click(txp='//a[@id="pagnNextLink"]')
+                    self.d.move_to_node(goods_node)
+                return goods_node
+            else:
+                if i == 0:
+                    cur_node = self.random_scan_products()
+                    self.d.move_from_to_click(fxp=cur_node, txp='//a[@id="pagnNextLink"]')
+                else:
+                    self.d.move_to_click(xp='//a[@id="pagnNextLink"]')
         if not self.flag:
             Log.info('未找到产品：%s' % self.conf.asin)
+
+
+# ---------------------------------------
 
     def search(self):
         print '4', self.conf.task_guid
         if self.search_by_cata():
-            print 'c1'
             if self.search_by_kw():
-                print 'k1'
                 if self.search_by_sub_cata():
-                    print 'sc2'
                     if self.search_by_price():
-                        print 'p1'
                         goods_xp = self.search_in_pages()
                         if goods_xp:
-                            print 'g1'
                             Rdb.insert_log(self.conf.task_guid, self.conf.user, '站内流量查找产品',
                                            '找到产品(asin:%s)' % self.conf.asin)
-                            if self.detail_page(goods_xp):
-                                print 'd1'
+                            if self.scan_detail_page(goods_xp, find=True):
                                 Rdb.insert_log(self.conf.task_guid, self.conf.user, '站内流量查找产品', '进入产品页(asin:%s)' % self.conf.asin)
                                 # bo.update_cookie_to_db(self.d, self.conf.task_guid, self.conf.user, '站内流量查找产品')
                                 return True
@@ -211,7 +225,7 @@ if __name__ == '__main__':
 
     t.index_page()
     # t.search_by_cata(value="search-alias=amazon-devices")
-    t.search_by_kw('ipad')
+    # t.search_by_kw('ipad')
     # print t.match_asin()
     # t.click_next_page()
     # t.search_by_nav_cata('Fire Tablets')
@@ -224,7 +238,7 @@ if __name__ == '__main__':
     #     print '3'
     #     print xp
         # xp = xp + '//a[contains(@href, "https://www.amazon.com/Fnova-Protective-Absorption-Cushion-Resistant/dp/B075NV8BCK/ref")]'
-    t.search_by_price()
+    # t.search_by_price()
         # t.detail_page(xp)
     # else:
     #     print 'weizhaodao'

@@ -130,7 +130,7 @@ class HandleDB(SQLhelper):
             return 0
 
 class Record2DB(HandleDB):
-    def __init__(self, host='192.168.0.231', user='sa', password='Sa123456', database='vp'):
+    def __init__(self, host='192.168.0.100', user='sa', password='Sa123456', database='vp'):
         super(Record2DB, self).__init__(host, user, password, database)
 
     def insert_to_db(self, fields, values, table):
@@ -155,6 +155,10 @@ class Record2DB(HandleDB):
         where = "Task_List_G='%s'" % task_guid
         return self.update_to_db(fields, values, where, table)
 
+    def gift_card_balance(self, task_guid, bal):
+        table, field, value, where = 'sys_Task_List_Detailed', ['Amountbalance'], [bal], "Task_List_G='%s'" % task_guid
+        return self.update_to_db(field, value, where, table)
+
     def update_cookie(self, user, ck):
         table, fields, values, where = 'account_cookies', ['cookies'], [ck], "account='%s'" % user
         return self.update_(table, fields, values, where)
@@ -169,6 +173,14 @@ if __name__ == '__main__':
     # h.search_(table="tablex", fields=['a','b','c'], where='condition expression')
     # h = Record2DB()
     # h.insert_log('user', 'task', 'log')
-    res = h.callProc("exec sys_SelectMailboxList")
-    print res
-    print res[0][1]
+    # res = h.callProc("exec sys_SelectMailboxList")
+    # print res
+    # print res[0][1]
+    import csv
+    con = h.search('select useragent, useragent_platform, operation_system, browser_version from sys_User_agent_inventroy')
+    with open("test.csv", "a") as csvfile:
+        writer = csv.writer(csvfile)
+        # 先写入columns_name
+        writer.writerow(["user_agent", "platform", 'os', 'browser_version'])
+        # 写入多行用writerows
+        writer.writerows([[a,b,c,d] for a,b,c,d in con])

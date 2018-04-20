@@ -1,10 +1,11 @@
 #coding=utf-8
 import sys
 import browser as bo
-from util import CidTransfer, rand_stay
+import time
+from util import CidTransfer
 from db.SQLModel import Record2DB
 from logs.log import Logger
-from setting import *
+from mail_auth.mailauth_handler import MailServer
 reload(sys)
 sys.setdefaultencoding('utf-8')
 L = Logger(__file__)
@@ -17,8 +18,8 @@ class Login(object):
         self.conf = conf
         self.url = 'https://' + CidTransfer(conf.cid).value
 
+
     def login_with_cookie(self):
-        print '3', self.conf.task_guid
         self.d.request(self.url)
         self.d.to_first_handler()
         self.d.delete_cookies()
@@ -31,18 +32,15 @@ class Login(object):
             else:
                 user_xpath = ''
                 L.error('Wrong params "contry id": %s' % self.conf.cid)
-            # print user_xpath, type(user_xpath)
             if self.d.is_element_exist(user_xpath):
                 L.info('带cookie账号登录成功')
                 Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '带cookie登录成功')
                 bo.update_cookie_to_db(self.d, self.conf.task_guid, self.conf.user, '账号登录')
                 return True
             else:
-                # bo.update_cookie_to_db(self.d, self.conf.task_guid, self.conf.user, '账号登录')
                 Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '带cookie登录失败')
                 L.error('带cookie账号登录失败')
                 return False
-                # return self.login_by_click()
         else:
             L.error('<login> cookie添加失败, 代理网速太慢')
             Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '登录失败, 代理网速太慢')
@@ -62,7 +60,6 @@ class Login(object):
         self.d.to_first_handler()
         # self.d.delete_cookies()
         # self.addCookies()
-        """
         self.d.wait_clickable(login_xpath)
         self.d.rand_move()
         self.d.click_opt(login_xpath)
@@ -70,14 +67,6 @@ class Login(object):
             self.d.wait_clickable(sub_xpath)
             self.d.send_key(p_xpath, self.conf.pw)
             self.d.click_opt(sub_xpath)
-            if self.d.is_element_exist(sub_xpath):
-                L.error('<login> 登录失败, 请检查账号密码和cookie')
-                Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '登录失败, 请检查账号密码')
-                return False
-            else:
-                bo.update_cookie_to_db(self.d, self.conf.task_guid, self.conf.user, '账号登录')
-                Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '登录成功')
-                return True
         else:
             self.d.wait(u_xpath)
             self.d.send_key(u_xpath, self.conf.user)
@@ -92,18 +81,37 @@ class Login(object):
                 self.d.wait_clickable(sub_xpath)
                 self.d.send_key(p_xpath, self.conf.pw)
                 self.d.click_opt(sub_xpath)
-            # 判断是否登录成功，如果成功则保存cookies
-            if self.d.is_element_exist('//input[@id="continue"]'):
-                L.error('<login> 登录失败，需要邮箱接收验证码登录')
-                Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '登录失败，账号登录环境与上次不同，需要邮箱验证')
-                return False
+        # for i in range(50):
+        #     time.sleep(1)
+        #     print i
+        # 判断是否登录成功，如果成功则保存cookies
+        if self.d.is_element_exist('//input[@id="continue"]'):
+            L.error('<login> 登录失败, 要验证码或邮箱验证')
+            Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '登录失败, 要验证码或邮箱验证')
+            if self.check_mail_auth():
+                auth = self.get_auth()
+                if auth:
+                    if self.input_auth(auth):
+                        bo.update_cookie_to_db(self.d, self.conf.task_guid, self.conf.user, '账号登录')
+                        Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '邮箱验证登录成功')
+                        return True
+                    else:
+                        L.error('邮箱验证码提交失败')
+                        Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '邮箱验证码提交失败')
+                        return False
+                else:
+                    L.error('未从邮箱获取到验证码')
+                    Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '未从邮箱提取到验证码')
+                    return False
             else:
-                bo.update_cookie_to_db(self.d, self.conf.task_guid, self.conf.user, '账号登录')
-                Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '登录成功')
-                return True
-        # else:
-        #     return False
-        """
+                L.error('需要手动验证码或者账号可能被封，请检查')
+                Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '需要手动验证码或者账号可能被封，请检查')
+                return False
+        else:
+            bo.update_cookie_to_db(self.d, self.conf.task_guid, self.conf.user, '账号登录')
+            Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '登录成功')
+            return True
+
     def addCookies(self):
         try:
             table = 'account_cookies'
@@ -129,6 +137,58 @@ class Login(object):
             L.exc('浏览器Cookie设置失败')
             Rdb.insert_log(self.conf.task_guid, self.conf.user, '账号登录', '浏览器Cookie 设置失败(请检查操作节点)')
             return False
+
+    def check_mail_auth(self):
+        h1_xp = '//h1[contains(text(), "Verification needed")]'
+        if self.d.get_elem_counts(h1_xp) > 0:
+            return True
+        return False
+
+    def send_auth_to_mail(self):
+        send_xp = '//input[@id="continue"]'
+        self.d.click_opt(send_xp)
+
+    def get_auth(self):
+        mail_handler = MailServer(self.conf.user, self.conf.pw,
+                                  self.conf.host, self.conf.port)
+        if mail_handler.conn:
+            origin_len = mail_handler.email_counts()
+            L.debug('origin_len:' + origin_len)
+            mail_handler.close_server()
+            self.send_auth_to_mail()
+            for i in range(self.conf.wait_mail):
+                L.info('剩余时间:%s(s)' % ((self.conf.wait_mail-i)*10))
+                time.sleep(10)
+
+                mail_handler = MailServer(self.conf.user, self.conf.pw,
+                                          self.conf.host, self.conf.port)
+                if mail_handler.conn:
+                    cur_len = mail_handler.email_counts()
+                    if cur_len - origin_len > 0:
+                        con = mail_handler.parse_mail(cur_len)
+                        authcode = mail_handler.abstract_authcode(con)
+                        mail_handler.close_server()
+                        if authcode:
+                            L.debug('auth code:' + authcode)
+                            return authcode
+                        else:
+                            L.error('验证码提取失败')
+                    else:
+                        L.error('还没获取到新邮件')
+                else:
+                    L.error('邮箱第%s次链接失败' % (i+1))
+        else:
+            L.error('邮箱链接失败')
+
+    def input_auth(self, auth):
+        h1_xp = '''//h1[contains(text(), "Verifying it's you")]'''
+        ctn_xp = '//input[@aria-labelledby="a-autoid-0-announce"]'
+        code_xp = '//input[@name="code"]'
+        if self.d.get_elem_counts(h1_xp) > 0:
+            self.d.send_key(code_xp, auth)
+            self.d.click_opt(ctn_xp)
+            return True
+        return False
 
 
 if __name__ == '__main__':

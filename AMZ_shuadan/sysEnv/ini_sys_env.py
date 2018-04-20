@@ -14,7 +14,7 @@ def manufacture_mac():
     sql = "select top(1) * from inventory_mac_manufacture order by newid()"
     return DB.search(sql)[0][1].encode('utf-8')
 
-def setMac(account_guid, usage='login'):
+def setMac(account_guid, mac=None, usage='login'):
     """mofidy the mac for AMZ acoount"""
     assert usage in ["login", 'regist'], 'Please make sure the usage for setMac'
     if usage == 'regist':
@@ -29,19 +29,18 @@ def setMac(account_guid, usage='login'):
         else:
             L.error('新mac：%s 地址连网失败' % res[0])
     elif usage == 'login':
-        print 'login mac'
-        table, fields, where = 'sys_ini_env', ['mac'], "Mailbox_G='%s'" % account_guid
-        mac = DB.search_(table, fields, where)
-        if len(mac):
-            res = set_mac(mac[0][0])
-            print res
-        else:
-            L.error('没找到此账号对应的mac地址，请检查账号')
+        print 'login mac:', mac
+        # table, fields, where = 'sys_ini_env', ['mac'], "Mailbox_G='%s'" % account_guid
+        # mac = DB.search_(table, fields, where)
+        # if len(mac):
+        res = set_mac(mac)
+        print res
+        # else:
+        #     L.error('没找到此账号对应的mac地址，请检查账号')
 
 
 def ini_sys(sys_conf, usage='login'):
-    assert usage in ["login", 'regist'], 'Please make sure the usage for setMac'
-    setMac(sys_conf.guid, usage)
+    setMac(sys_conf.guid, sys_conf.mac, usage)
     setSysTime(sys_conf.cid)
     screen = sys_conf.screen_px.split("*")
     setScreenPx(*screen)

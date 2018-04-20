@@ -34,7 +34,6 @@ def browser_params(guid, usage='regist'):
         print 'browser_params1', params
     else:
         sql = "exec sys_GetAccountParameter '%s', 2" % guid  # task_guid
-        print '1', sql
         params = DB.callProc(sql)
         print 'browser_params2', params
     if len(params):
@@ -155,24 +154,11 @@ def login_params(guid):
 
 
 def distribute_account(guid):
-    """If distributed, return 1, else -11"""
+    """just execute this function for SQL SERVER to distribute an account for a task
+        It makes no sense to current package
+    """
     sql = "exec sys_GetAccountParameter '%s', 0" % guid  # task_guid
     DB.callProc(sql)
-    # return True
-    # if len(par):
-    #     if par[0][0] == 1:
-    #         L.info('<distribute_account>: 账号分配成功')
-    #         return True
-    #     elif par[0][0] == -11:
-    #         L.info('<distribute_account>: 账号分配失败')
-    #         return False
-    #     else:
-    #         L.info('<distribute_account>: 账号分配失败2')
-    #         return False
-    # else:
-    #     L.info('<distribute_account>: 账号分配失败')
-    #     return False
-
 
 def search_params(guid):
     par = {}
@@ -273,7 +259,29 @@ def task_params(guid):
         if params[0][2]: par['user'] = params[0][2]
     return par
 
+def manual_login_params(guid):
+    par = {}
+    sys_sql = "exec sys_LoginInfo '%s', 1" % guid
+    bs_sql = "exec sys_LoginInfo '%s', 2" % guid
+    lg_sql = "exec sys_LoginInfo '%s', 3" % guid
+    sys_p = DB.callProc(sys_sql)
+    bs_p = DB.callProc(bs_sql)
+    lg_p = DB.callProc(lg_sql)
+    if len(sys_p) and len(bs_p) and len(lg_p):
+        if sys_p[0][2]: par['mac'] = sys_p[0][2]
+        if sys_p[0][3]: par['sys_lang'] = sys_p[0][3]
+        if sys_p[0][4]: par['screen_px'] = sys_p[0][4]
+        if sys_p[0][5]: par['cid'] = sys_p[0][5]
 
+        if bs_p[0][2]: par['user_agent'] = bs_p[0][2]
+        if bs_p[0][3]: par['font'] = bs_p[0][3]
+        if bs_p[0][4]: par['acpt_lang'] = bs_p[0][4]
+        if bs_p[0][5]: par['proxy'] = bs_p[0][5]
+
+        if lg_p[0][5]: par['user'] = lg_p[0][5].encode('utf-8')
+        if lg_p[0][6]: par['pw'] = lg_p[0][6]
+        if lg_p[0][12]: par['name'] = lg_p[0][12]
+    return par
 
 
 

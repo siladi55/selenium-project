@@ -23,7 +23,6 @@ class Initial_browser(object):
 
     def set_chrome(self):
         options = webdriver.ChromeOptions()
-        # print os.path.join(os.getcwd(), 'WebRTC Control.crx')
         # options.add_extension(os.path.join(os.getcwd(), 'chromeExtentions', 'WebRTC Network Limiter_0_2_1_3.crx'))
         options.add_extension(os.path.join(os.getcwd(), 'chromeExtentions', 'WebRTC Control.crx'))
         options.add_extension(os.path.join(os.getcwd(), 'chromeExtentions', 'CanvasFingerprintBlock_1_5.crx'))
@@ -169,6 +168,7 @@ class Driver(object):
 
     def page_back(self):
         self.d.back()
+        rand_stay()
 
     def to_first_handler(self):
         self.d.switch_to.window(self.d.window_handles[0])
@@ -251,32 +251,45 @@ class Driver(object):
             # self.flag = 0
             Log.exc("<move_to_node>: move to node failed:(%s)" % xp)
 
-
     def move_to_click(self, xp, offset=0):
         """Scroll from page head"""
         self.move_to_node(xp, offset=offset)
         self.click_opt(xp)
         rand_stay(3, 5)
 
-    def move_from_to(self, fxp, txp, offset=0):
-        """Scroll from node to node"""
+    def move_from_to(self, fxp, txp):
         try:
-            y0 = self.d.find_element_by_xpath(fxp).location['y'] - self.conf.page_offset
-            y1 = self.d.find_element_by_xpath(txp).location['y'] - self.conf.page_offset
-            i = y0
-            while i < y1-offset:
-                js = "var q=document.documentElement.scrollTop=" + str(i)
-                self.d.execute_script(js)
-                stay()
-                i += int(random.uniform(*self.conf.page_move_rate))
+            yf = self.d.find_element_by_xpath(fxp).location['y']
+            yt = self.d.find_element_by_xpath(txp).location['y']
+            if yf < yt:
+                i = yf - self.conf.page_offset
+                while i < yt - self.conf.page_offset:
+                    js = "var q=document.documentElement.scrollTop=" + str(i)
+                    self.d.execute_script(js)
+                    stay()
+                    i += int(random.uniform(*self.conf.page_move_rate))
+                    if i > yt - self.conf.page_offset:
+                        i = yt - self.conf.page_offset
+            elif yf > yt:
+                i = yf - self.conf.page_offset
+                while i > yt - self.conf.page_offset:
+                    js = "var q=document.documentElement.scrollTop=" + str(i)
+                    self.d.execute_script(js)
+                    stay()
+                    i -= int(random.uniform(*self.conf.page_move_rate))
+                    if i < yt - self.conf.page_offset:
+                        i = yt - self.conf.page_offset
             rand_stay()
         except Exception, e:
-            # self.flag = 0
             Log.exc("<move_to_node>: move to node failed: %s(%s)" % (e, txp))
 
-    def move_from_to_click(self, fxp, txp, offset=0):
-        self.move_from_to(fxp, txp, offset=offset)
+    def move_from_to_click(self, fxp, txp):
+        self.move_from_to(fxp, txp)
         self.click_opt(txp)
+        rand_stay()
+
+    def jump_to_hold(self, elem):
+        ActionChains(self.d).move_to_element(elem).perform()
         rand_stay()
 
     def jump_to_node(self, xp):
@@ -299,13 +312,20 @@ class Driver(object):
             return False
 
     def is_elements_exist(self, xp):
-        # if not (isinstance(xp, str) and len(xp)):
-        #     raise Exception('<is_elements_exist> Xpath expression should be str, got (%s)' % xp)
         try:
-            self.d.find_elements_by_xpath(xp)
-            return True
+            elems = self.d.find_elements_by_xpath(xp)
+            if len(elems):
+                return elems
+            return False
         except:
             return False
+
+    def get_elem_counts(self, xp):
+        try:
+            return len(self.d.find_elements_by_xpath(xp))
+        except:
+            Log.exc('<get_elem_counts>: 未找到节点[%s]' % xp)
+            return 0
 
     def rand_move(self):
         try:

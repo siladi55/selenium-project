@@ -68,4 +68,5 @@ if __name__ == "__main__":
     # for i in range(50):
     #     LOG.error(i)
     #     LOG.debug(i)
-    LOG.critical("Database has gone away")
+    # LOG.critical("Database has gone away")
+    # print os.getcwd()

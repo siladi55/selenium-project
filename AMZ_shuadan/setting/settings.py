@@ -154,6 +154,12 @@ class LoginConf(object):
         self.cid = 1
         self.name = ''
         self.task_guid = ''
+
+        self.by_click = True
+        if self.by_click:
+            self.host = 'pop.rurumail.com'
+            self.port = 110
+            self.wait_mail = 6   # 10s/loop
         if param_dict:
             self.update(param_dict)
         else:

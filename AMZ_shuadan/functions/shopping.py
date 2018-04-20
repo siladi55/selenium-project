@@ -443,6 +443,25 @@ class Shopping(object):
             L.info('<订单总价及追踪号入库执行失败>')
             return False
 
+    def record_gift_card_balance(self):
+        try:
+            account_box = '//a[@id="nav-link-accountList"]'
+            self.d.click_opt(account_box)
+            bal_xp = '???'
+            balance = self.d.output_node_text(bal_xp)
+            if balance is not None:
+                if Rdb.gift_card_balance(self.conf.task_guid, balance):
+                    L.info('<礼品卡余额入库成功>')
+                    return True
+                L.info('<礼品卡余额入库失败>')
+                return False
+            L.info('<未获取到页面礼品卡余额>')
+            return False
+        except:
+            L.info('<礼品卡余额入库执行失败>')
+            return False
+
+
     def proceed_checkout(self):
         # 判断是否跟卖
         if self.conf.buy_cart == 1:
@@ -557,6 +576,11 @@ class Shopping(object):
             return False
         if self._record_order(total):
             Rdb.insert_log(self.conf.task_guid, self.conf.user, '购买刷单', '订单总价及追踪号入库成功')
+            if self.conf.giftcard_guid:
+                if self.record_gift_card_balance():
+                    Rdb.insert_log(self.conf.task_guid, self.conf.user, '购买刷单', '礼品卡余额入库成功')
+                else:
+                    Rdb.insert_log(self.conf.task_guid, self.conf.user, '购买刷单', '礼品卡余额入库失败')
             return True
         else:
             Rdb.insert_log(self.conf.task_guid, self.conf.user, '购买刷单', '订单总价及追踪号入库失败')
@@ -653,6 +677,11 @@ class Shopping(object):
             return False
         if self._record_order(total):
             Rdb.insert_log(self.conf.task_guid, self.conf.user, '购买刷单', '订单总价及追踪号入库成功')
+            if self.conf.giftcard_guid:
+                if self.record_gift_card_balance():
+                    Rdb.insert_log(self.conf.task_guid, self.conf.user, '购买刷单', '礼品卡余额入库成功')
+                else:
+                    Rdb.insert_log(self.conf.task_guid, self.conf.user, '购买刷单', '礼品卡余额入库失败')
             return True
         else:
             Rdb.insert_log(self.conf.task_guid, self.conf.user, '购买刷单', '订单总价及追踪号入库失败')

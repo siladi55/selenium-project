@@ -48,7 +48,6 @@ class Regist(object):
                     self.d.click_opt(ctn_xp)
                     util.rand_stay(5, 8)
                     if re.match(alert, str(self.d.page_source), re.S):
-                        # print self.d.is_elements_exist(alert_xp), 'cunzai'
                         L.error('The email has been registed!')
                         Rdb.insert_log(self.conf.guid, self.conf.user, '邮箱注册', '注册失败, 邮箱被注册过')
                         Rdb.callProc("exec sys_InsertAccount '%s',3,'邮箱已注册'" % self.conf.guid)

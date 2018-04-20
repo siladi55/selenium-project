@@ -53,7 +53,6 @@ class Work(object):
             driver.quit_opt()
 
     def _login_initial(self, guid):
-        # print '2', guid
         g.distribute_account(guid)  # 账号分配
         bs_conf = BrowserConf(g.browser_params(guid, 'login'))
         dr_conf = DriverConf(g.driver_params())
@@ -63,21 +62,16 @@ class Work(object):
             lg_conf = LoginConf(par)
             ini_sys(sys_conf, 'login')
             driver = bo.ini_browser_drive(bs_conf, dr_conf)
-            if func.Login(driver, lg_conf).login_with_cookie():
-                print 'Login'
-                for i in range(20):
-                    time.sleep(1)
-                    print 'sleep %s' % i
-            # if func.Login(driver, lg_conf).login_by_click():
-                return driver  # 登录成功
-            else:
-                # for i in range(1, 200):
-                #     time.sleep(1)
-                #     print 'sleep %s' % i
-                # print '更新cookie'
-                # bo.update_cookie_to_db(driver, guid, lg_conf.user, '账号?登录')
-                # print '成功'
-                Log.error('<login initial>: 带cookie登录失败')
+            if lg_conf.by_click:  # 手动登录
+                if func.Login(driver, lg_conf).login_by_click():
+                    return driver
+                else:
+                    Log.error('<login initial>: 点击登录失败')
+            else:  # cookie登录
+                if func.Login(driver, lg_conf).login_with_cookie():
+                    return driver
+                else:
+                    Log.error('<login initial>: 带cookie登录失败')
         else:
             Log.error('<login initial>: 账号未分配')
 
@@ -95,6 +89,27 @@ class Work(object):
             else:
                 Log.error('<search initial>: Failed to aquire search params')
 
+    def manual_opt_after_login(self, guid, minute):
+        par = g.manual_login_params(guid)
+        if len(par):
+            bs_conf = BrowserConf(par)
+            dr_conf = DriverConf(g.driver_params())
+            sys_conf = SysEnvConf(par)
+            lg_conf = LoginConf(par)
+            ini_sys(sys_conf, 'login')
+            driver = bo.ini_browser_drive(bs_conf, dr_conf)
+            if func.Login(driver, lg_conf).login_with_cookie():
+                Log.info('<manual operation>: 带cookie登录成功')
+                for i in range(1, minute * 60):
+                    time.sleep(1)
+                    print '%s后浏览器关闭，请勿手动关闭浏览器' % (60 * minute - i)
+                # print '更新cookie'
+                bo.update_cookie_to_db(driver, guid, lg_conf.user, '账号?登录')
+                print '操作成功'
+            else:
+                Log.error('<manual operation>: 带cookie登录失败')
+        else:
+            Log.error('<manual operation>: 手动登录未获取到参数')
 
     def _add2cart(self, driver, conf):
         return func.Actions(driver, conf).add_to_cart()
@@ -114,11 +129,7 @@ class Work(object):
     def _shopping(self, driver, task_guid):
         try:
             sp_conf = ShoppingConf(g.shopping_params(task_guid))
-            # addr_conf = AddrConf(g.addr_params(sp_conf.newAddrGuid, usage='deliver'))
-            # card_conf = CardConf(g.card_params(addr_conf.fullname, sp_conf.ccard_guid, sp_conf.giftcard_guid))
-            # print "card_conf", vars(card_conf)
             return func.Shopping(driver, sp_conf).proceed_checkout()
-        # return func.Shopping(driver, sp_conf, addr_conf, card_conf).proceed_checkout()
         except:
             Log.error('<shopping>: 购买失败')
             return False
@@ -173,7 +184,7 @@ class Work(object):
             else:
                 Rdb.callProc("exec sys_UpdateTaskStatus  '%s', '任务id获取失败', 2" % task_guid)
             # the next line blocked for testing, browser should be active
-            # driver.quit_opt()
+            driver.quit_opt()
         else:
             Rdb.callProc("exec sys_UpdateTaskStatus  '%s', '任务初始化失败', 2" % task_guid)
             Log.error('任务失败')

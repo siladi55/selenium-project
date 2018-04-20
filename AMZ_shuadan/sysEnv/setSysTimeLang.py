@@ -40,7 +40,7 @@ def setSysTime(cid):
     now = datetime.datetime.strptime(today, "%Y-%m-%d %H:%M:%S")
     now = now - datetime.timedelta(hours=8)
     weekday = now.weekday()
-    se = win32api.SetSystemTime(now.year, now.month, weekday, now.day, now.hour, now.minute, now.second, 0)
+    win32api.SetSystemTime(now.year, now.month, weekday, now.day, now.hour, now.minute, now.second, 0)
 
 
 def setScreenPx(width=1920, height=1080):

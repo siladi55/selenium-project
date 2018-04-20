@@ -1,0 +1,137 @@
+2017-12-29 15:39:12.857000: wfastcgi.py 3.0.0 initialized
+2017-12-29 16:07:42.836000: wfastcgi.py 3.0.0 initialized
+2017-12-29 16:18:08.387000: wfastcgi.py 3.0.0 initialized
+2017-12-29 16:23:24.722000: wfastcgi.py 3.0.0 initialized
+2017-12-29 16:24:25.842000: wfastcgi.py 3.0.0 initialized
+2017-12-29 16:32:30.835000: wfastcgi.py 3.0.0 initialized
+2017-12-29 16:36:44.695000: wfastcgi.py 3.0.0 initialized
+2017-12-29 16:41:07.522000: wfastcgi.py 3.0.0 initialized
+2017-12-29 16:42:30.528000: wfastcgi.py 3.0.0 initialized
+2017-12-29 16:59:05.248000: wfastcgi.py 3.0.0 initialized
+[2017-12-29 17:02:10][  ERROR][MainThread][4432][            api]>> environment can only contain strings
+Traceback (most recent call last):
+  File ".\api.py", line 34, in GAkeyword
+    res = adwords(kw, cid)
+  File ".\taskCtrler.py", line 88, in adwords
+    kwDict = GAkw.main(kw, cid)
+  File ".\GAkw.py", line 355, in main
+    obj.operation()
+  File ".\GAkw.py", line 84, in operation
+    driver = self.setChromeDriver()
+  File ".\GAkw.py", line 42, in setChromeDriver
+    driver = webdriver.Chrome(executable_path=chromedriver, chrome_options=options)
+  File "c:\python27\lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 62, in __init__
+    self.service.start()
+  File "c:\python27\lib\site-packages\selenium\webdriver\common\service.py", line 74, in start
+    stdout=self.log_file, stderr=self.log_file)
+  File "c:\python27\lib\subprocess.py", line 390, in __init__
+    errread, errwrite)
+  File "c:\python27\lib\subprocess.py", line 640, in _execute_child
+    startupinfo)
+TypeError: environment can only contain strings
+2017-12-29 17:21:48.183000: wfastcgi.py 3.0.0 initialized
+[2017-12-29 17:21:48][  ERROR][MainThread][7044][            api]>> environment can only contain strings
+Traceback (most recent call last):
+  File ".\api.py", line 34, in GAkeyword
+    res = adwords(kw, cid)
+  File ".\taskCtrler.py", line 88, in adwords
+    kwDict = GAkw.main(kw, cid)
+  File ".\GAkw.py", line 355, in main
+    obj.operation()
+  File ".\GAkw.py", line 84, in operation
+    driver = self.setChromeDriver()
+  File ".\GAkw.py", line 42, in setChromeDriver
+    driver = webdriver.Chrome(executable_path=chromedriver, chrome_options=options)
+  File "c:\python27\lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 62, in __init__
+    self.service.start()
+  File "c:\python27\lib\site-packages\selenium\webdriver\common\service.py", line 74, in start
+    stdout=self.log_file, stderr=self.log_file)
+  File "c:\python27\lib\subprocess.py", line 390, in __init__
+    errread, errwrite)
+  File "c:\python27\lib\subprocess.py", line 640, in _execute_child
+    startupinfo)
+TypeError: environment can only contain strings
+2017-12-29 17:26:40.335000: Error occurred while reading WSGI handler:
+
+Traceback (most recent call last):
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 791, in main
+    env, handler = read_wsgi_handler(response.physical_path)
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 633, in read_wsgi_handler
+    handler = get_wsgi_handler(os.getenv("WSGI_HANDLER"))
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 600, in get_wsgi_handler
+    handler = __import__(module_name, fromlist=[name_list[0][0]])
+  File ".\api.py", line 19, in <module>
+    @app.route('/2')
+  File "c:\python27\lib\site-packages\flask\app.py", line 1080, in decorator
+    self.add_url_rule(rule, endpoint, f, **options)
+  File "c:\python27\lib\site-packages\flask\app.py", line 64, in wrapper_func
+    return f(self, *args, **kwargs)
+  File "c:\python27\lib\site-packages\flask\app.py", line 1051, in add_url_rule
+    'existing endpoint function: %s' % endpoint)
+AssertionError: View function mapping is overwriting an existing endpoint function: re
+
+
+StdOut: 
+
+StdErr: 
+2017-12-29 17:26:40.335000: Unhandled exception in wfastcgi.py: Traceback (most recent call last):
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 791, in main
+    env, handler = read_wsgi_handler(response.physical_path)
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 633, in read_wsgi_handler
+    handler = get_wsgi_handler(os.getenv("WSGI_HANDLER"))
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 600, in get_wsgi_handler
+    handler = __import__(module_name, fromlist=[name_list[0][0]])
+  File ".\api.py", line 19, in <module>
+    @app.route('/2')
+  File "c:\python27\lib\site-packages\flask\app.py", line 1080, in decorator
+    self.add_url_rule(rule, endpoint, f, **options)
+  File "c:\python27\lib\site-packages\flask\app.py", line 64, in wrapper_func
+    return f(self, *args, **kwargs)
+  File "c:\python27\lib\site-packages\flask\app.py", line 1051, in add_url_rule
+    'existing endpoint function: %s' % endpoint)
+AssertionError: View function mapping is overwriting an existing endpoint function: re
+2017-12-29 17:26:40.335000: Running on_exit tasks
+2017-12-29 17:26:40.335000: wfastcgi.py 3.0.0 closed
+2017-12-29 17:27:51.721000: Error occurred while reading WSGI handler:
+
+Traceback (most recent call last):
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 791, in main
+    env, handler = read_wsgi_handler(response.physical_path)
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 633, in read_wsgi_handler
+    handler = get_wsgi_handler(os.getenv("WSGI_HANDLER"))
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 600, in get_wsgi_handler
+    handler = __import__(module_name, fromlist=[name_list[0][0]])
+  File ".\api.py", line 19, in <module>
+    @app.route('/2')
+  File "c:\python27\lib\site-packages\flask\app.py", line 1080, in decorator
+    self.add_url_rule(rule, endpoint, f, **options)
+  File "c:\python27\lib\site-packages\flask\app.py", line 64, in wrapper_func
+    return f(self, *args, **kwargs)
+  File "c:\python27\lib\site-packages\flask\app.py", line 1051, in add_url_rule
+    'existing endpoint function: %s' % endpoint)
+AssertionError: View function mapping is overwriting an existing endpoint function: re
+
+
+StdOut: 
+
+StdErr: 
+2017-12-29 17:27:51.721000: Unhandled exception in wfastcgi.py: Traceback (most recent call last):
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 791, in main
+    env, handler = read_wsgi_handler(response.physical_path)
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 633, in read_wsgi_handler
+    handler = get_wsgi_handler(os.getenv("WSGI_HANDLER"))
+  File "c:\python27\Lib\site-packages\wfastcgi.py", line 600, in get_wsgi_handler
+    handler = __import__(module_name, fromlist=[name_list[0][0]])
+  File ".\api.py", line 19, in <module>
+    @app.route('/2')
+  File "c:\python27\lib\site-packages\flask\app.py", line 1080, in decorator
+    self.add_url_rule(rule, endpoint, f, **options)
+  File "c:\python27\lib\site-packages\flask\app.py", line 64, in wrapper_func
+    return f(self, *args, **kwargs)
+  File "c:\python27\lib\site-packages\flask\app.py", line 1051, in add_url_rule
+    'existing endpoint function: %s' % endpoint)
+AssertionError: View function mapping is overwriting an existing endpoint function: re
+2017-12-29 17:27:51.722000: Running on_exit tasks
+2017-12-29 17:27:51.722000: wfastcgi.py 3.0.0 closed
+2017-12-29 17:30:15.244000: wfastcgi.py 3.0.0 initialized
+2017-12-29 17:38:30.119000: wfastcgi.py 3.0.0 initialized

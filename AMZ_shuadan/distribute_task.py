@@ -23,6 +23,10 @@ def main(interval=5):
                 task_guid = str(res[0][1])
                 print 'tas2', task_guid
                 work.traffic_task(task_guid)
+            elif res[0][2] == 3:
+                task_guid = str(res[0][1])
+                minute = res[0][7]
+                work.manual_opt_after_login(task_guid, minute)
         time.sleep(interval)
 
 if __name__ == '__main__':

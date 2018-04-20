@@ -7,8 +7,8 @@ import random
 import subprocess
 import re
 import platform
-from logs.log import Logger
-L = Logger(__file__)
+# from logs.log import Logger
+# L = Logger(__file__)
 
 
 def modify_mac(mac):
@@ -21,8 +21,8 @@ def modify_mac(mac):
         time.sleep(0.2)
         os.popen(bat2)
     except:
-        L.exc('网卡修改执行错误')
-
+        # L.exc('网卡修改执行错误')
+        pass
 
 def random_mac(index):
     """index: 传入前6位mac字符，网卡厂商标识，随机生成新mac地址"""
@@ -39,10 +39,10 @@ def connect_status(mac):
     ret = os.system('ping 8.8.8.8')
     # if connected, ret will return 0, otherwise 1
     if not ret and (mac in find_all_mac()):
-        L.info('网卡修改成功')
+        # L.info('网卡修改成功')
         return True
     else:
-        L.info('网卡修改失败')
+        # L.info('网卡修改失败')
         return False
 
 def find_all_mac():
@@ -73,5 +73,5 @@ def set_mac(given_mac=None, index='00:03:DC'):
 
 if __name__ == '__main__':
     # set_mac(index='00:15:23')
-    set_mac('00-20-AB-D2-95-DA')
+    set_mac('1C-1B-0D-BC-FD-02')
     # find_all_mac()

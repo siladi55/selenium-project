@@ -1,0 +1,47 @@
+2017-12-29 17:52:38.654000: wfastcgi.py 3.0.0 initialized
+[2017-12-29 17:52:48][  ERROR][MainThread][7824][            api]>> environment can only contain strings
+Traceback (most recent call last):
+  File ".\api.py", line 39, in GAkeyword
+    res = adwords(kw, cid)
+  File ".\excu\taskCtrler.py", line 88, in adwords
+    kwDict = GAkw.main(kw, cid)
+  File ".\excu\GAkw.py", line 355, in main
+    obj.operation()
+  File ".\excu\GAkw.py", line 84, in operation
+    driver = self.setChromeDriver()
+  File ".\excu\GAkw.py", line 42, in setChromeDriver
+    driver = webdriver.Chrome(executable_path=chromedriver, chrome_options=options)
+  File "c:\python27\lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 62, in __init__
+    self.service.start()
+  File "c:\python27\lib\site-packages\selenium\webdriver\common\service.py", line 74, in start
+    stdout=self.log_file, stderr=self.log_file)
+  File "c:\python27\lib\subprocess.py", line 390, in __init__
+    errread, errwrite)
+  File "c:\python27\lib\subprocess.py", line 640, in _execute_child
+    startupinfo)
+TypeError: environment can only contain strings
+2017-12-29 18:01:41.802000: wfastcgi.py 3.0.0 initialized
+[2017-12-29 18:02:13][  ERROR][MainThread][1028][            api]>> environment can only contain strings
+Traceback (most recent call last):
+  File ".\api.py", line 39, in GAkeyword
+    res = adwords(kw, cid)
+  File ".\excu\taskCtrler.py", line 88, in adwords
+    kwDict = GAkw.main(kw, cid)
+  File ".\excu\GAkw.py", line 355, in main
+    obj.operation()
+  File ".\excu\GAkw.py", line 84, in operation
+    driver = self.setChromeDriver()
+  File ".\excu\GAkw.py", line 42, in setChromeDriver
+    driver = webdriver.Chrome(executable_path=chromedriver, chrome_options=options)
+  File "c:\python27\lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 62, in __init__
+    self.service.start()
+  File "c:\python27\lib\site-packages\selenium\webdriver\common\service.py", line 74, in start
+    stdout=self.log_file, stderr=self.log_file)
+  File "c:\python27\lib\subprocess.py", line 390, in __init__
+    errread, errwrite)
+  File "c:\python27\lib\subprocess.py", line 640, in _execute_child
+    startupinfo)
+TypeError: environment can only contain strings
+2017-12-29 18:11:29.571000: wfastcgi.py 3.0.0 initialized
+2018-01-03 17:29:21.404000: wfastcgi.py 3.0.0 initialized
+2018-01-04 12:04:39.345000: wfastcgi.py 3.0.0 initialized
